@@ -2,17 +2,23 @@
 
 version: '3'
 
-vars:
-  GREETING: Hello, World!
-
 tasks:
   build:
+    desc: build the go binary in dev mode and install
     deps:
       - clean
     cmds:
       - go build -o bin/sigex
       - go install
-    silent: true
   clean:
+    desc: clean the build directory
     cmds:
       - rm -rf bin
+  example:
+    desc: run the example node app
+    cmds:
+      - >
+        sigex
+        -f example_node/config/.dev.env
+        -f example_node/.env
+        node example_node/app.js

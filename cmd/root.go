@@ -5,27 +5,39 @@ package cmd
 
 import (
 	"bufio"
+	"context"
+	"fmt"
+	"hash/crc32"
 	"log"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 	"syscall"
 
+	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"github.com/spf13/cobra"
+	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )
 
 var envFiles []string
 var envVars map[string]string
+var skipSecrets bool
+var secretRegex *regexp.Regexp
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "sigex [flags] command",
 	Short: "The sigex process runner",
-	Long: `sigex runs processes and leverages multiple env files for 
-ultimate flexibility.`,
+	Long: `sigex is a process runner/executor with support for multiple .env file
+configuration as well as automatic retrieval of secrets from supported
+secrets manager platforms.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
+
+		secretRegex, _ = regexp.Compile(`^sigex-secret-(.*)\:\/\/(.*)$`)
+
 		if len(args) < 1 {
 			log.Fatal("Not enough arguments provided")
 		}
@@ -75,6 +87,15 @@ func processEnv() []string {
 		}
 	}
 
+	// Resolve tokenized secrets
+	if !skipSecrets {
+		for key, element := range envMap {
+			if isSecretToken(element) {
+				envMap[key] = resolveSecret(element)
+			}
+		}
+	}
+
 	// Convert the map to lines
 	lines := make([]string, 0)
 
@@ -118,6 +139,66 @@ func getFileLines(path string) []string {
 	return lines
 }
 
+func isSecretToken(token string) bool {
+	matches := secretRegex.MatchString(token)
+	return matches
+}
+
+func resolveSecret(token string) string {
+	parts := secretRegex.FindStringSubmatch(token)
+	if len(parts) < 3 {
+		log.Fatalln("secret token in incorrect format: ", token)
+	}
+	// implement secret resolution (currently just returning the parsed token)
+
+	secretPlatform := parts[1]
+
+	var secret string
+
+	if secretPlatform == "gcp" {
+		secret = getGCPSecretVersion(parts[2])
+	} else {
+		log.Fatalln("unsupported secret platform: " + secretPlatform)
+	}
+
+	return secret
+}
+
+func getGCPSecretVersion(name string) string {
+	// name := "projects/my-project/secrets/my-secret/versions/5"
+	// name := "projects/my-project/secrets/my-secret/versions/latest"
+
+	// Create the client.
+	ctx := context.Background()
+	client, err := secretmanager.NewClient(ctx)
+	if err != nil {
+		log.Fatalln(fmt.Errorf("failed to create secretmanager client: %v", err))
+	}
+	defer client.Close()
+
+	// Build the request.
+	req := &secretmanagerpb.AccessSecretVersionRequest{
+		Name: name,
+	}
+
+	// Call the API.
+	result, err := client.AccessSecretVersion(ctx, req)
+	if err != nil {
+		log.Fatalln(fmt.Errorf("failed to access secret version: %v", err))
+	}
+
+	// Verify the data checksum.
+	crc32c := crc32.MakeTable(crc32.Castagnoli)
+	checksum := int64(crc32.Checksum(result.Payload.Data, crc32c))
+	if checksum != *result.Payload.DataCrc32C {
+		log.Fatalln(fmt.Errorf("data corruption detected in secret version"))
+	}
+
+	// WARNING: Do not print the secret in a production environment
+
+	return string(result.Payload.Data)
+}
+
 func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
@@ -127,6 +208,7 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().StringSliceVarP(&envFiles, "env-file", "f", []string{}, "Specify one or more .env files to use")
-	rootCmd.Flags().StringToStringVarP(&envVars, "env-var", "e", make(map[string]string), "Specify one or more environment variables to use (ex: -e FOO=bar)")
+	rootCmd.Flags().StringSliceVarP(&envFiles, "env-file", "f", []string{}, "specify one or more .env files to use")
+	rootCmd.Flags().StringToStringVarP(&envVars, "env-var", "e", make(map[string]string), "specify one or more environment variables to use (ex: -e FOO=bar)")
+	rootCmd.Flags().BoolVar(&skipSecrets, "skip-secrets", false, "skip the automatic resolution of secret values")
 }
