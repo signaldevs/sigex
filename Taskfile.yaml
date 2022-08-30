@@ -7,8 +7,11 @@ vars:
 
 tasks:
   build:
+    deps:
+      - clean
     cmds:
       - go build -o bin/sigex
+      - go install
     silent: true
   clean:
     cmds:
