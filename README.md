@@ -36,7 +36,7 @@ URL=http://www.signaladvisors.com
 
 ## Secrets
 
-Secrets can be automatically resolved using a supported secrets manager. In your environment variables, insert a token for your secret and `sigex` will request it for you. 
+Secrets can be automatically resolved using a supported secrets manager. In your environment variables, insert a token for your secret and `sigex` will request it for you.
 
 Current secrets managers supported:
 
