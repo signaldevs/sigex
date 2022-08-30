@@ -14,6 +14,10 @@ tasks:
     desc: clean the build directory
     cmds:
       - rm -rf bin
+  test:
+    desc: run unit tests
+    cmds:
+      - go test -cover -v ./...
   example:
     desc: run the example node app
     cmds:

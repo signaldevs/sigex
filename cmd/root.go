@@ -20,49 +20,88 @@ import (
 	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )
 
-var envFiles []string
-var envVars map[string]string
-var skipSecrets bool
-var secretRegex *regexp.Regexp
+var (
+	envFiles    []string
+	envVars     map[string]string
+	skipSecrets bool
+	secretRegex *regexp.Regexp
+)
+
+type osHelperInterface interface {
+	LookPath(string) (string, error)
+	Exec(string, []string, []string) error
+}
+
+type osHelper struct{}
+
+func (o osHelper) LookPath(path string) (string, error) {
+	return exec.LookPath(path)
+}
+
+func (o osHelper) Exec(argv0 string, argv []string, envv []string) error {
+	return syscall.Exec(argv0, argv, envv)
+}
+
+var osHelperInstance osHelperInterface
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "sigex [flags] command",
 	Short: "The sigex process runner",
 	Long: `sigex is a process runner/executor with support for multiple .env file
-configuration as well as automatic retrieval of secrets from supported
-secrets manager platforms.`,
+configuration as well as automatic retrieval of secrets from 
+supported secrets manager platforms.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: RootCmdRunE,
+}
 
-		secretRegex, _ = regexp.Compile(`^sigex-secret-(.*)\:\/\/(.*)$`)
+func RootCmdRunE(cmd *cobra.Command, args []string) error {
+	secretRegex, _ = regexp.Compile(`^sigex-secret-(.*)\:\/\/(.*)$`)
 
-		if len(args) < 1 {
-			log.Fatal("Not enough arguments provided")
-		}
+	if len(args) < 1 {
+		return fmt.Errorf("no command argument was provided")
+	}
 
-		binary, err := exec.LookPath(args[0])
-		if err != nil {
-			panic(err)
-		}
+	binary, err := osHelperInstance.LookPath(args[0])
+	if err != nil {
+		return err
+	}
 
-		env := processEnv()
+	env := processEnv()
 
-		execErr := syscall.Exec(binary, args, env)
-		if execErr != nil {
-			log.Fatal(execErr)
-		}
-	},
+	execErr := osHelperInstance.Exec(binary, args, env)
+	if execErr != nil {
+		return execErr
+	}
+
+	return nil
+}
+
+func RootCmdFlags(cmd *cobra.Command) {
+	// Here you will define your flags and configuration settings.
+	// Cobra supports persistent flags, which, if defined here,
+	// will be global for your application.
+
+	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.sigex.yaml)")
+
+	// Cobra also supports local flags, which will only run
+	// when this action is called directly.
+	cmd.Flags().StringSliceVarP(&envFiles, "env-file", "f", []string{}, "specify one or more .env files to use")
+	cmd.Flags().StringToStringVarP(&envVars, "env-var", "e", make(map[string]string), "specify one or more environment variables to use (ex: -e FOO=bar)")
+	cmd.Flags().BoolVar(&skipSecrets, "skip-secrets", false, "skip the automatic resolution of secret values")
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	err := rootCmd.Execute()
-	if err != nil {
-		os.Exit(1)
-	}
+	RootCmdFlags(rootCmd)
+	cobra.CheckErr(rootCmd.Execute())
+}
+
+func ResetVars() {
+	envFiles = nil
+	envVars = nil
 }
 
 // Resolve all env vars using existing environment plus any additional env files
@@ -129,6 +168,7 @@ func getFileLines(path string) []string {
 
 	// Read through 'tokens' until an EOF is encountered.
 	for sc.Scan() {
+		// TODO: need to filter out comment lines, blank lines, etc
 		lines = append(lines, sc.Text())
 	}
 
@@ -199,16 +239,11 @@ func getGCPSecretVersion(name string) string {
 	return string(result.Payload.Data)
 }
 
+func SetOSHelper(helper osHelperInterface) {
+	osHelperInstance = helper
+}
+
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.sigex.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().StringSliceVarP(&envFiles, "env-file", "f", []string{}, "specify one or more .env files to use")
-	rootCmd.Flags().StringToStringVarP(&envVars, "env-var", "e", make(map[string]string), "specify one or more environment variables to use (ex: -e FOO=bar)")
-	rootCmd.Flags().BoolVar(&skipSecrets, "skip-secrets", false, "skip the automatic resolution of secret values")
+	SetOSHelper(osHelper{})
+	// osHelperInstance = osHelper{}
 }
