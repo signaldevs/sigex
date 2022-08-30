@@ -1,0 +1,15 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  GREETING: Hello, World!
+
+tasks:
+  build:
+    cmds:
+      - go build -o bin/sigex
+    silent: true
+  clean:
+    cmds:
+      - rm -rf bin
