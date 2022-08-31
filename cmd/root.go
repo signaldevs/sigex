@@ -10,14 +10,13 @@ import (
 	"hash/crc32"
 	"log"
 	"os"
-	"os/exec"
 	"regexp"
 	"strings"
-	"syscall"
 
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"github.com/spf13/cobra"
 	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
+	sigex "signaladvisors.com/sigex/pkg"
 )
 
 var (
@@ -26,23 +25,6 @@ var (
 	skipSecrets bool
 	secretRegex *regexp.Regexp
 )
-
-type osHelperInterface interface {
-	LookPath(string) (string, error)
-	Exec(string, []string, []string) error
-}
-
-type osHelper struct{}
-
-func (o osHelper) LookPath(path string) (string, error) {
-	return exec.LookPath(path)
-}
-
-func (o osHelper) Exec(argv0 string, argv []string, envv []string) error {
-	return syscall.Exec(argv0, argv, envv)
-}
-
-var osHelperInstance osHelperInterface
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -59,18 +41,20 @@ supported secrets manager platforms.`,
 func RootCmdRunE(cmd *cobra.Command, args []string) error {
 	secretRegex, _ = regexp.Compile(`^sigex-secret-(.*)\:\/\/(.*)$`)
 
+	osHelper := sigex.GetOSHelper()
+
 	if len(args) < 1 {
 		return fmt.Errorf("no command argument was provided")
 	}
 
-	binary, err := osHelperInstance.LookPath(args[0])
+	binary, err := osHelper.LookPath(args[0])
 	if err != nil {
 		return err
 	}
 
 	env := processEnv()
 
-	execErr := osHelperInstance.Exec(binary, args, env)
+	execErr := osHelper.Exec(binary, args, env)
 	if execErr != nil {
 		return execErr
 	}
@@ -97,11 +81,6 @@ func RootCmdFlags(cmd *cobra.Command) {
 func Execute() {
 	RootCmdFlags(rootCmd)
 	cobra.CheckErr(rootCmd.Execute())
-}
-
-func ResetVars() {
-	envFiles = nil
-	envVars = nil
 }
 
 // Resolve all env vars using existing environment plus any additional env files
@@ -189,7 +168,6 @@ func resolveSecret(token string) string {
 	if len(parts) < 3 {
 		log.Fatalln("secret token in incorrect format: ", token)
 	}
-	// implement secret resolution (currently just returning the parsed token)
 
 	secretPlatform := parts[1]
 
@@ -239,11 +217,6 @@ func getGCPSecretVersion(name string) string {
 	return string(result.Payload.Data)
 }
 
-func SetOSHelper(helper osHelperInterface) {
-	osHelperInstance = helper
-}
-
 func init() {
-	SetOSHelper(osHelper{})
-	// osHelperInstance = osHelper{}
+
 }

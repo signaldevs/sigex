@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"signaladvisors.com/sigex/cmd"
+	sigex "signaladvisors.com/sigex/pkg"
 )
 
 type RootCmdTestSuite struct {
@@ -37,7 +38,7 @@ func (o *osHelperMock) Exec(argv0 string, argv []string, envv []string) error {
 func (suite *RootCmdTestSuite) SetupTest() {
 	suite.command = &cobra.Command{Use: "sigex", RunE: cmd.RootCmdRunE}
 	suite.osHelper = new(osHelperMock)
-	cmd.SetOSHelper(suite.osHelper)
+	sigex.SetOSHelper(suite.osHelper)
 }
 
 func (suite *RootCmdTestSuite) TestNoArguments() {
@@ -54,6 +55,7 @@ func (suite *RootCmdTestSuite) TestRootCmdEchoCommand() {
 	assert.Nil(suite.T(), err)
 }
 
+// Helper execute function
 func execute(t *testing.T, c *cobra.Command, args ...string) (string, error) {
 	t.Helper()
 
