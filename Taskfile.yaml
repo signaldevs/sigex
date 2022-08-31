@@ -23,6 +23,7 @@ tasks:
     cmds:
       - >
         sigex
-        -f example_node/config/.dev.env
-        -f example_node/.env
-        node example_node/app.js
+        -f examples/node/config/.dev.env
+        -f examples/node/.env
+        -e CLI_VAR=SomeCLIVar
+        node examples/node/app.js
