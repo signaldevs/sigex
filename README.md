@@ -45,7 +45,7 @@ Current secrets managers supported:
 
 ### Google Secrets Manager
 
-Token Format: `sigex-secret-gcp://{Resource Id incl Version}`
+Token Format: `sigex-secret-{secret platform}://{Resource Id incl Version}`
 
 ```bash
 # format: sigex-secret-gcp://{secret-resource-version-id}
