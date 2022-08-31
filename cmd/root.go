@@ -33,8 +33,6 @@ var rootCmd = &cobra.Command{
 	Long: `sigex is a process runner/executor with support for multiple .env file
 configuration as well as automatic retrieval of secrets from 
 supported secrets manager platforms.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
 	RunE: RootCmdRunE,
 }
 
