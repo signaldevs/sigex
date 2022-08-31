@@ -6,6 +6,19 @@ Coming soon...
 
 ## Usage
 
+```bash
+sigex is a process runner/executor with support for multiple .env file configuration as well as automatic retrieval of secrets from supported secrets manager platforms.
+
+Usage:
+  sigex [flags] command
+
+Flags:
+  -f, --env-file strings         specify one or more .env files to use
+  -e, --env-var stringToString   specify one or more environment variables to use (ex: -e FOO=bar) (default [])
+  -h, --help                     help for sigex
+      --skip-secrets             skip the automatic resolution of secret values
+```
+
 Example running a node app:
 
 ```bash
