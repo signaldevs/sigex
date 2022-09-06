@@ -3,7 +3,7 @@
 version: '3'
 
 vars:
-  PKG_VERSION: 1
+  SIGEX_VERSION: 1
   PKG_IDENTIFIER: com.signaladvisors.sigex
 
 tasks:
@@ -55,7 +55,7 @@ tasks:
       - >
         pkgbuild
         --identifier {{.PKG_IDENTIFIER}}
-        --version {{.PKG_VERSION}}
+        --version {{.SIGEX_VERSION}}
         --root bin/darwin-amd64
         bin/darwin-amd64/sigex.pkg
 
