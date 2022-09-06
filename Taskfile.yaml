@@ -10,6 +10,14 @@ tasks:
     cmds:
       - go build -o bin/sigex
       - go install
+  build-prod:
+    desc: build binaries for production
+    deps:
+      - clean
+    cmds:
+      - go build -o bin/sigex
+      - GOOS=darwin GOARCH=amd64 go build -o bin/darwin-amd64/sigex
+      - GOOS=windows GOARCH=amd64 go build -o bin/windows-amd64/sigex.exe
   clean:
     desc: clean the build directory
     cmds:
