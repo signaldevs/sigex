@@ -45,7 +45,7 @@ tasks:
   package:
     desc: create an OSX package for installation
     deps:
-      - build-prod
+      - build-dist
     cmds:
       - >
         pkgbuild
