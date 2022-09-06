@@ -17,8 +17,8 @@ tasks:
       - go build -o bin/sigex
       - go install
 
-  build-prod:
-    desc: build binaries for production
+  build-dist:
+    desc: build binaries for distribution
     deps:
       - clean
       - build
