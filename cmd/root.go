@@ -5,17 +5,12 @@ package cmd
 
 import (
 	"bufio"
-	"context"
 	"fmt"
-	"hash/crc32"
 	"log"
 	"os"
-	"regexp"
 	"strings"
 
-	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"github.com/spf13/cobra"
-	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 	sigex "signaladvisors.com/sigex/pkg"
 )
 
@@ -23,7 +18,6 @@ var (
 	envFiles    []string
 	envVars     map[string]string
 	skipSecrets bool
-	secretRegex *regexp.Regexp
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -37,7 +31,6 @@ supported secrets manager platforms.`,
 }
 
 func RootCmdRunE(cmd *cobra.Command, args []string) error {
-	secretRegex, _ = regexp.Compile(`^sigex-secret-(.*)\:\/\/(.*)$`)
 
 	osHelper := sigex.GetOSHelper()
 
@@ -45,16 +38,20 @@ func RootCmdRunE(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("no command argument was provided")
 	}
 
+	// check to make sure the command binary actually exists
 	binary, err := osHelper.LookPath(args[0])
 	if err != nil {
-		return err
+		return fmt.Errorf("invalid command: %e", err)
 	}
 
+	// construct the complete environment to be
+	// passed to the command process
 	env := processEnv()
 
+	// execute the command with the processed environment
 	execErr := osHelper.Exec(binary, args, env)
 	if execErr != nil {
-		return execErr
+		return fmt.Errorf("unable to execute command: %e", execErr)
 	}
 
 	return nil
@@ -106,8 +103,8 @@ func processEnv() []string {
 	// Resolve tokenized secrets
 	if !skipSecrets {
 		for key, element := range envMap {
-			if isSecretToken(element) {
-				envMap[key] = resolveSecret(element)
+			if sigex.IsSecretToken(element) {
+				envMap[key] = sigex.ResolveSecret(element)
 			}
 		}
 	}
@@ -154,65 +151,6 @@ func getFileLines(path string) []string {
 	}
 
 	return lines
-}
-
-func isSecretToken(token string) bool {
-	matches := secretRegex.MatchString(token)
-	return matches
-}
-
-func resolveSecret(token string) string {
-	parts := secretRegex.FindStringSubmatch(token)
-	if len(parts) < 3 {
-		log.Fatalln("secret token in incorrect format: ", token)
-	}
-
-	secretPlatform := parts[1]
-
-	var secret string
-
-	if secretPlatform == "gcp" {
-		secret = getGCPSecretVersion(parts[2])
-	} else {
-		log.Fatalln("unsupported secret platform: " + secretPlatform)
-	}
-
-	return secret
-}
-
-func getGCPSecretVersion(name string) string {
-	// name := "projects/my-project/secrets/my-secret/versions/5"
-	// name := "projects/my-project/secrets/my-secret/versions/latest"
-
-	// Create the client.
-	ctx := context.Background()
-	client, err := secretmanager.NewClient(ctx)
-	if err != nil {
-		log.Fatalln(fmt.Errorf("failed to create secretmanager client: %v", err))
-	}
-	defer client.Close()
-
-	// Build the request.
-	req := &secretmanagerpb.AccessSecretVersionRequest{
-		Name: name,
-	}
-
-	// Call the API.
-	result, err := client.AccessSecretVersion(ctx, req)
-	if err != nil {
-		log.Fatalln(fmt.Errorf("failed to access secret version: %v", err))
-	}
-
-	// Verify the data checksum.
-	crc32c := crc32.MakeTable(crc32.Castagnoli)
-	checksum := int64(crc32.Checksum(result.Payload.Data, crc32c))
-	if checksum != *result.Payload.DataCrc32C {
-		log.Fatalln(fmt.Errorf("data corruption detected in secret version"))
-	}
-
-	// WARNING: Do not print the secret in a production environment
-
-	return string(result.Payload.Data)
 }
 
 func init() {
