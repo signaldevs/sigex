@@ -55,6 +55,8 @@ func RootCmdRunE(cmd *cobra.Command, args []string) error {
 	// passed to the command process
 	env := processEnv()
 
+	// if in debug mode, stop here and just log
+	// out the environment
 	if debug {
 		logEnv(env)
 		return nil

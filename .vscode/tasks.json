@@ -6,10 +6,17 @@
     {
       "label": "build",
       "type": "shell",
-      "command": "task build",
+      "command": "task",
+      "args": ["build"],
+      "problemMatcher": "$go",
       "group": {
         "kind": "build",
         "isDefault": true
+      },
+      "presentation": {
+        "reveal": "silent",
+        "revealProblems": "onProblem",
+        "close": true
       }
     }
   ]
