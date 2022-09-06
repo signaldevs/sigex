@@ -18,6 +18,7 @@ var (
 	envFiles    []string
 	envVars     map[string]string
 	skipSecrets bool
+	debug       bool
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -34,19 +35,30 @@ func RootCmdRunE(cmd *cobra.Command, args []string) error {
 
 	osHelper := sigex.GetOSHelper()
 
-	if len(args) < 1 {
+	if len(args) < 1 && !debug {
 		return fmt.Errorf("no command argument was provided")
 	}
 
 	// check to make sure the command binary actually exists
-	binary, err := osHelper.LookPath(args[0])
-	if err != nil {
-		return fmt.Errorf("invalid command: %e", err)
+
+	var binary string
+	var lpError error
+
+	if !debug {
+		binary, lpError = osHelper.LookPath(args[0])
+		if lpError != nil {
+			return fmt.Errorf("invalid command: %e", lpError)
+		}
 	}
 
 	// construct the complete environment to be
 	// passed to the command process
 	env := processEnv()
+
+	if debug {
+		logEnv(env)
+		return nil
+	}
 
 	// execute the command with the processed environment
 	// as separate lines
@@ -70,6 +82,7 @@ func RootCmdFlags(cmd *cobra.Command) {
 	cmd.Flags().StringSliceVarP(&envFiles, "env-file", "f", []string{}, "specify one or more .env files to use")
 	cmd.Flags().StringToStringVarP(&envVars, "env-var", "e", make(map[string]string), "specify one or more environment variables to use (ex: -e FOO=bar)")
 	cmd.Flags().BoolVar(&skipSecrets, "skip-secrets", false, "skip the automatic resolution of secret values")
+	cmd.Flags().BoolVar(&debug, "debug", false, "debug the resolved environment variables")
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -152,6 +165,12 @@ func getFileLines(path string) []string {
 	}
 
 	return lines
+}
+
+func logEnv(env []string) {
+	for i := 0; i < len(env); i++ {
+		fmt.Println(env[i])
+	}
 }
 
 func init() {
