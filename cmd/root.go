@@ -49,6 +49,7 @@ func RootCmdRunE(cmd *cobra.Command, args []string) error {
 	env := processEnv()
 
 	// execute the command with the processed environment
+	// as separate lines
 	execErr := osHelper.Exec(binary, args, env)
 	if execErr != nil {
 		return fmt.Errorf("unable to execute command: %e", execErr)

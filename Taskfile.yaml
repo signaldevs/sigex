@@ -2,30 +2,73 @@
 
 version: '3'
 
+vars:
+  PKG_VERSION: 1
+  PKG_IDENTIFIER: com.signaladvisors.sigex
+
 tasks:
   build:
     desc: build the go binary in dev mode and install
-    deps:
-      - clean
+    sources:
+      - ./**/*.go
+    generates:
+      - bin/sigex{{exeExt}}
     cmds:
       - go build -o bin/sigex
       - go install
+
   build-prod:
     desc: build binaries for production
     deps:
       - clean
+      - build
     cmds:
-      - go build -o bin/sigex
-      - GOOS=darwin GOARCH=amd64 go build -o bin/darwin-amd64/sigex
-      - GOOS=windows GOARCH=amd64 go build -o bin/windows-amd64/sigex.exe
+      - task: build-os
+        vars:
+          GOOS: darwin
+          GOARCH: amd64
+      - task: build-os
+        vars:
+          GOOS: linux
+          GOARCH: amd64
+      - task: build-os
+        vars:
+          GOOS: windows
+          GOARCH: amd64
+          EXE: exe
+
+  build-os: >
+    GOOS={{.GOOS}}
+    GOARCH={{.GOARCH}}
+    go build -o bin/{{.GOOS}}-{{.GOARCH}}/sigex{{if .EXE}}.{{.EXE}}{{end}}
+
+  package:
+    desc: create an OSX package for installation
+    deps:
+      - build-prod
+    cmds:
+      - >
+        pkgbuild
+        --analyze
+        --root bin/darwin-amd64
+        bin/darwin-amd64/components.plist
+      - >
+        pkgbuild
+        --identifier {{.PKG_IDENTIFIER}}
+        --version {{.PKG_VERSION}}
+        --root bin/darwin-amd64
+        bin/darwin-amd64/sigex.pkg
+
   clean:
     desc: clean the build directory
     cmds:
       - rm -rf bin
+
   test:
     desc: run unit tests
     cmds:
       - go test -cover -v ./...
+
   example:
     desc: run the example node app
     cmds:
@@ -35,3 +78,11 @@ tasks:
         -f examples/node/.env
         -e CLI_VAR=SomeCLIVar
         node examples/node/app.js
+
+  uninstall:
+    desc: removes installed sigex package
+    vars:
+      SIGEX_INSTALL_PATH:
+        sh: which sigex
+    cmds:
+      - rm {{.SIGEX_INSTALL_PATH}}
