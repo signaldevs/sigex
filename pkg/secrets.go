@@ -22,7 +22,7 @@ func IsSecretToken(token string) bool {
 	return matches
 }
 
-// ResolveSecretToken takes a secret token and contacts the corresponding
+// ResolveSecret takes a secret token and contacts the corresponding
 // secrets manager platform to return the plaintext version of the
 // secret
 func ResolveSecret(token string) string {
@@ -60,7 +60,12 @@ func GetGCPSecretVersion(name string) string {
 	if err != nil {
 		log.Fatalln(fmt.Errorf("failed to create secretmanager client: %v", err))
 	}
-	defer client.Close()
+	defer func(client *secretmanager.Client) {
+		err := client.Close()
+		if err != nil {
+			log.Println(fmt.Errorf("error closing secret manager client: %v", err))
+		}
+	}(client)
 
 	// Build the request.
 	req := &secretmanagerpb.AccessSecretVersionRequest{
@@ -87,11 +92,15 @@ func GetGCPSecretVersion(name string) string {
 
 // GetAWSSecretVersion gets the plaintext version of a
 // secret in AWS Secrets Manager
+//
+//goland:noinspection GoUnusedParameter - todo: remove after implementation is done.
 func GetAWSSecretVersion(name string) string {
 	log.Fatalln("aws secrets not yet implemented")
+	// TODO: Will it get this far?
 	return ""
 }
 
 func init() {
+	//goland:noinspection RegExpRedundantEscape - test as suggested, then fix.
 	secretRegex, _ = regexp.Compile(`^sigex-secret-(.*)\:\/\/(.*)$`)
 }
