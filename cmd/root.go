@@ -1,4 +1,5 @@
 /*
+Package cmd
 Copyright © 2022 Signal Advisors <devteam@signaladvisors.com>
 */
 package cmd
@@ -31,7 +32,7 @@ supported secrets manager platforms.`,
 	RunE: RootCmdRunE,
 }
 
-func RootCmdRunE(cmd *cobra.Command, args []string) error {
+func RootCmdRunE(_ *cobra.Command, args []string) error {
 
 	osHelper := sigex.GetOSHelper()
 
@@ -151,7 +152,12 @@ func getFileLines(path string) []string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			log.Println(fmt.Errorf("error closing file: %v", err))
+		}
+	}(file)
 
 	sc := bufio.NewScanner(file)
 	lines := make([]string, 0)
