@@ -21,10 +21,11 @@ func (gr GcpResolver) CanResolve(value string) bool {
 
 // Resolve gets the plaintext version of a
 // secret in GCP Secrets Manager
-func (gr GcpResolver) Resolve(name string) (string, error) {
-	// TODO: figure out where to strip off the foo:// bits
-	// TODO: think about letting the errors bubble up.
+func (gr GcpResolver) Resolve(input string) (string, error) {
+	// remove prefix:
+	name := strings.ReplaceAll(input, gcpPrefix, "")
 
+	// examples:
 	// name := "projects/my-project/secrets/my-secret/versions/5"
 	// name := "projects/my-project/secrets/my-secret/versions/latest"
 
@@ -60,6 +61,5 @@ func (gr GcpResolver) Resolve(name string) (string, error) {
 	}
 
 	// WARNING: Do not print the secret in a production environment
-
 	return string(result.Payload.Data), nil
 }

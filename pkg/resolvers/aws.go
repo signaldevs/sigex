@@ -1,7 +1,7 @@
 package sigex
 
 import (
-	"log"
+	"github.com/aws/aws-secretsmanager-caching-go/secretcache"
 	"strings"
 )
 
@@ -14,10 +14,13 @@ func (gr AwsResolver) CanResolve(value string) bool {
 	return strings.HasPrefix(value, awsPrefix)
 }
 
+var (
+	secretCache, _ = secretcache.New()
+)
+
 // Resolve gets the plaintext version of a
 // secret in AWS Secrets Manager
-func (gr AwsResolver) Resolve(_ string) (string, error) {
-	log.Fatalln("aws secrets not yet implemented")
-	// TODO: Will it get this far?
-	return "", nil
+func (gr AwsResolver) Resolve(input string) (string, error) {
+	awsKey := strings.ReplaceAll(input, awsPrefix, "")
+	return secretCache.GetSecretString(awsKey)
 }
