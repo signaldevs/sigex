@@ -1,5 +1,11 @@
-
-console.log(`DEV_VAR: ${process.env.DEV_VAR}`);
-console.log(`OVERRIDE_TEST: ${process.env.OVERRIDE_TEST}`);
-console.log(`CLI_VAR: ${process.env.CLI_VAR}`);
-console.log(`GCP_SECRET: ${process.env.GCP_SECRET}`);
+const vars = [
+    'DEV_VAR',
+    'OVERRIDE_TEST',
+    'CLI_VAR',
+    'GCP_SECRET',
+    'AWS_SECRET',
+    'ROT13_SECRET',
+    'NOT_SECRET'
+];
+// noinspection JSUnresolvedVariable
+vars.forEach(v => console.log(`${v}: ${process.env[v]}`));

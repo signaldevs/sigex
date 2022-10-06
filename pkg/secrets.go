@@ -16,7 +16,10 @@ func ResolveSecret(token string) string {
 
 	for _, resolver := range resolvers {
 		if resolver.CanResolve(token) {
-			resolved, _ := resolver.Resolve(token)
+			resolved, err := resolver.Resolve(token)
+			if err != nil {
+				log.Fatalln(err)
+			}
 			return resolved
 		}
 	}
