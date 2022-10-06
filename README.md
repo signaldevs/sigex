@@ -100,9 +100,9 @@ Admin access may be needed for secrets access, or some lesser access, coordinate
 3. Expand the account you want to test 
 4. Click the "Command line or programmatic access" link
 5. Copy the export command from step 1 and run those in the console you will be testing from
-6. Also run this in the same console: export AWS_REGION="us-east-2"
-7. Build sigex (from root of repo run this `go build`)
-8. `cd examples/node`
-9. `../../sigex -f config/.dev.env -f .env node app.js`
+6. Also run this in the same console: `export AWS_REGION="us-east-2"`
+7. Build sigex (from root of repo run: `go build`)
+8. Go into the example app directory: `cd examples/node`
+9. Run the example app: `../../sigex -f config/.dev.env -f .env node app.js`
 10. Observe the output it should show `AWS_SECRET: "dev secret for sigex"` along with secrets from other sources.
 

@@ -5,7 +5,6 @@ import (
 	sigex "signaladvisors.com/sigex/pkg/resolvers"
 )
 
-// TODO: pass these into init. (todo for the todo: figure out how)
 var awsResolver, gcpResolver, rot13Resolver, defaultResolver sigex.Resolver
 
 // ResolveSecret takes a secret token and contacts the corresponding
