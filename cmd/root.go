@@ -120,9 +120,7 @@ func processEnv() []string {
 	// Resolve tokenized secrets
 	if !skipSecrets {
 		for key, element := range envMap {
-			if sigex.IsSecretToken(element) {
-				envMap[key] = sigex.ResolveSecret(element)
-			}
+			envMap[key] = sigex.ResolveSecret(element)
 		}
 	}
 
