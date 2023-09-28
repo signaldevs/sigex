@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	cloud.google.com/go/secretmanager v1.11.1
-	github.com/aws/aws-secretsmanager-caching-go v1.1.2
+	github.com/aws/aws-sdk-go v1.45.14
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.4
 )
@@ -13,7 +13,6 @@ require (
 	cloud.google.com/go/compute v1.23.0 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/iam v1.1.2 // indirect
-	github.com/aws/aws-sdk-go v1.45.14 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
