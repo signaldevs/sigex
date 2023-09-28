@@ -138,10 +138,19 @@ func envLinesToMap(envMap map[string]string, lines []string) {
 
 	for i := 0; i < len(lines); i++ {
 		s := strings.Split(lines[i], "=")
+
+		key := strings.Trim(s[0], " ")
+		val := strings.Trim(s[1], " ")
+
+		// if the line starts with #, skip it
+		if strings.HasPrefix(key, "#") {
+			continue
+		}
+
 		if len(s) < 2 {
 			continue
 		}
-		envMap[strings.Trim(s[0], " ")] = strings.Trim(s[1], " ")
+		envMap[key] = val
 	}
 }
 
