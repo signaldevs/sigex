@@ -1,13 +1,14 @@
 package sigex
 
 import (
-	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"context"
 	"fmt"
-	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 	"hash/crc32"
 	"log"
 	"strings"
+
+	secretmanager "cloud.google.com/go/secretmanager/apiv1"
+	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
 )
 
 type GcpResolver struct{}
