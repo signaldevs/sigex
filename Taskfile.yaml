@@ -11,8 +11,6 @@ tasks:
     desc: build the go binary in dev mode and install
     sources:
       - ./**/*.go
-    generates:
-      - bin/sigex{{exeExt}}
     cmds:
       - go build -o bin/sigex
       - go install
