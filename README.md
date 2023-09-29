@@ -57,7 +57,7 @@ Secrets can be automatically resolved using a supported secrets manager. In your
 Current secrets managers supported:
 
 * Google Cloud Secrets Manager
-* _[coming soon] AWS Secrets Manager_
+* AWS Secrets Manager
 
 ### Google Secrets Manager
 
