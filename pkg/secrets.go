@@ -2,7 +2,8 @@ package sigex
 
 import (
 	"log"
-	sigex "signaladvisors.com/sigex/pkg/resolvers"
+
+	sigex "github.com/signaldevs/sigex/pkg/resolvers"
 )
 
 var awsResolver, gcpResolver, rot13Resolver, defaultResolver sigex.Resolver

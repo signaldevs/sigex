@@ -6,12 +6,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/signaldevs/sigex/cmd"
+	sigex "github.com/signaldevs/sigex/pkg"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"signaladvisors.com/sigex/cmd"
-	sigex "signaladvisors.com/sigex/pkg"
 )
 
 type RootCmdTestSuite struct {

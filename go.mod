@@ -1,4 +1,4 @@
-module signaladvisors.com/sigex
+module github.com/signaldevs/sigex
 
 go 1.19
 

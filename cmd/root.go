@@ -12,15 +12,17 @@ import (
 	"regexp"
 	"strings"
 
+	sigex "github.com/signaldevs/sigex/pkg"
 	"github.com/spf13/cobra"
-	sigex "signaladvisors.com/sigex/pkg"
 )
 
 var (
-	envFiles    []string
-	envVars     map[string]string
-	skipSecrets bool
-	debug       bool
+	envFiles        []string
+	envVars         map[string]string
+	skipSecretsFlag bool
+	debugFlag       bool
+	versionFlag     bool
+	version         string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -35,9 +37,14 @@ supported secrets manager platforms.`,
 
 func RootCmdRunE(_ *cobra.Command, args []string) error {
 
+	if versionFlag {
+		fmt.Println(version)
+		return nil
+	}
+
 	osHelper := sigex.GetOSHelper()
 
-	if len(args) < 1 && !debug {
+	if len(args) < 1 && !debugFlag {
 		return fmt.Errorf("no command argument was provided")
 	}
 
@@ -46,7 +53,7 @@ func RootCmdRunE(_ *cobra.Command, args []string) error {
 	var binary string
 	var lpError error
 
-	if !debug {
+	if !debugFlag {
 		binary, lpError = osHelper.LookPath(args[0])
 		if lpError != nil {
 			return fmt.Errorf("invalid command: %e", lpError)
@@ -59,7 +66,7 @@ func RootCmdRunE(_ *cobra.Command, args []string) error {
 
 	// if in debug mode, stop here and just log
 	// out the environment
-	if debug {
+	if debugFlag {
 		logEnv(env)
 		return nil
 	}
@@ -85,8 +92,9 @@ func RootCmdFlags(cmd *cobra.Command) {
 	// when this action is called directly.
 	cmd.Flags().StringSliceVarP(&envFiles, "env-file", "f", []string{}, "specify one or more .env files to use")
 	cmd.Flags().StringToStringVarP(&envVars, "env-var", "e", make(map[string]string), "specify one or more environment variables to use (ex: -e FOO=bar)")
-	cmd.Flags().BoolVar(&skipSecrets, "skip-secrets", false, "skip the automatic resolution of secret values")
-	cmd.Flags().BoolVar(&debug, "debug", false, "debug the resolved environment variables")
+	cmd.Flags().BoolVar(&skipSecretsFlag, "skip-secrets", false, "skip the automatic resolution of secret values")
+	cmd.Flags().BoolVar(&debugFlag, "debug", false, "debug the resolved environment variables")
+	cmd.Flags().BoolVar(&versionFlag, "version", false, "print the version and exit")
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -119,7 +127,7 @@ func processEnv() []string {
 	}
 
 	// Resolve tokenized secrets
-	if !skipSecrets {
+	if !skipSecretsFlag {
 		for key, element := range envMap {
 			envMap[key] = sigex.ResolveSecret(element)
 		}

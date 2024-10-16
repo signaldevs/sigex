@@ -3,7 +3,8 @@
 version: '3'
 
 vars:
-  SIGEX_VERSION: 1
+  SIGEX_VERSION:
+    sh: git describe --tags --abbrev=0
   PKG_IDENTIFIER: com.signaladvisors.sigex
 
 tasks:
@@ -14,8 +15,14 @@ tasks:
     generates:
       - bin/sigex{{exeExt}}
     cmds:
-      - go build -o bin/sigex
-      - go install
+      - echo "{{.SIGEX_VERSION}}"
+      - >
+        go build
+        -ldflags "-X github.com/signaldevs/sigex/cmd.version={{.SIGEX_VERSION}}"
+        -o bin/sigex
+      - >
+        go install
+        -ldflags "-X github.com/signaldevs/sigex/cmd.version={{.SIGEX_VERSION}}"
 
   build-dist:
     desc: build binaries for distribution
@@ -40,7 +47,9 @@ tasks:
   build-os: >
     GOOS={{.GOOS}}
     GOARCH={{.GOARCH}}
-    go build -o bin/sigex-v{{.SIGEX_VERSION}}-{{.GOOS}}-{{.GOARCH}}/sigex{{if .EXE}}.{{.EXE}}{{end}}
+    go build 
+    -ldflags "-X github.com/signaldevs/sigex/cmd.version={{.SIGEX_VERSION}}"
+    -o bin/sigex-v{{.SIGEX_VERSION}}-{{.GOOS}}-{{.GOARCH}}/sigex{{if .EXE}}.{{.EXE}}{{end}}
 
   package:
     desc: create an OSX package for installation
