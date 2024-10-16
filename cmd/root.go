@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -136,20 +137,31 @@ func processEnv() []string {
 
 func envLinesToMap(envMap map[string]string, lines []string) {
 
+	envVarRegex := regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*=.+$`)
+
 	for i := 0; i < len(lines); i++ {
-		s := strings.Split(lines[i], "=")
 
-		key := strings.Trim(s[0], " ")
-		val := strings.Trim(s[1], " ")
+		line := strings.TrimSpace(lines[i])
 
-		// if the line starts with #, skip it
-		if strings.HasPrefix(key, "#") {
+		// Skip if line is blank or is a comment
+		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
+
+		// Ensure the line follows the standard env file format: "VARIABLE=value"
+		if !envVarRegex.MatchString(line) {
+			continue
+		}
+
+		s := strings.Split(line, "=")
 
 		if len(s) < 2 {
 			continue
 		}
+
+		key := strings.TrimSpace(s[0])
+		val := strings.TrimSpace(s[1])
+
 		envMap[key] = val
 	}
 }
