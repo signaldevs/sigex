@@ -65,17 +65,15 @@ jobs:
           name: sigex-${{ matrix.goos }}-${{ matrix.goarch }}
           path: ./sigex${{ matrix.goos == 'windows' && '.exe' || '' }}
 
-      # - name: Create ZIP file
-      #   run: |
-      #     zip_name="sigex-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip"
-      #     zip -j ${zip_name} sigex${{ matrix.goos == 'windows' && '.exe' || '' }}
+      - name: Package binary
+        run: >
+          tar -czvf sigex-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
+          sigex${{ matrix.goos == 'windows' && '.exe' || '' }}
 
-      # - name: Upload Release Asset
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ needs.create-release.outputs.upload_url }}
-      #     asset_path: ./sigex-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip
-      #     asset_name: sigex-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip
-      #     asset_content_type: application/zip
+      - name: Upload to GitHub release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./sigex-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
+          asset_name: sigex-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
+          asset_content_type: application/gzip
