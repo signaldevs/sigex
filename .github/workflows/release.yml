@@ -73,7 +73,7 @@ jobs:
       - name: Calculate SHA256 checksum
         run: >
           sha256sum sigex-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz > 
-          sigex-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz.sha256
+          sigex-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz.sha256.txt
 
       - name: Upload archive
         uses: actions/upload-release-asset@v1
@@ -91,6 +91,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ./sigex-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz.sha256
-          asset_name: sigex-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz.sha256
+          asset_path: ./sigex-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz.sha256.txt
+          asset_name: sigex-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz.sha256.txt
           asset_content_type: text/plain
