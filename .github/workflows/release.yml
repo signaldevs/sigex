@@ -59,8 +59,8 @@ jobs:
       - name: Run tests
         run: go test -v ./...
 
-      - name: Upload release binaries
-        uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
+        name: Upload ${{github.ref_name}} release binary (${{ matrix.goos }}-${{ matrix.goarch }})
         with:
           name: sigex-${{ matrix.goos }}-${{ matrix.goarch }}
           path: ./sigex${{ matrix.goos == 'windows' && '.exe' || '' }}
