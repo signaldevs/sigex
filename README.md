@@ -2,6 +2,17 @@
 
 ## Installation
 
+### MacOS
+
+With [Homebrew](https://brew.sh/):
+
+```bash
+brew tap signaldevs/tap
+brew install sigex
+```
+
+### Windows
+
 Coming soon...
 
 ## Usage
