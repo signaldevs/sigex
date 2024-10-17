@@ -70,7 +70,12 @@ jobs:
           tar -czvf sigex-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
           sigex${{ matrix.goos == 'windows' && '.exe' || '' }}
 
-      - name: Upload to GitHub release
+      - name: Calculate SHA256 checksum
+        run: >
+          sha256sum sigex-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz > 
+          sigex-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz.sha256
+
+      - name: Upload archive
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -79,3 +84,13 @@ jobs:
           asset_path: ./sigex-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
           asset_name: sigex-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
           asset_content_type: application/gzip
+
+      - name: Upload checksum
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./sigex-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz.sha256
+          asset_name: sigex-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz.sha256
+          asset_content_type: text/plain
