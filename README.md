@@ -8,7 +8,7 @@ Coming soon...
 
 ```bash
 sigex is a process runner/executor with support for multiple .env file
-configuration as well as automatic retrieval of secrets from 
+configuration as well as automatic retrieval of secrets from
 supported secrets manager platforms.
 
 Usage:
@@ -56,8 +56,8 @@ Secrets can be automatically resolved using a supported secrets manager. In your
 
 Current secrets managers supported:
 
-* Google Cloud Secrets Manager
-* AWS Secrets Manager
+- Google Cloud Secrets Manager
+- AWS Secrets Manager
 
 ### Google Secrets Manager
 
@@ -88,21 +88,8 @@ Token Format: `sigex-secret-rot13://uryyb_jbeyq`
 MY_ROT13_SECRET=sigex-secret-rot13://uryyb_jbeyq
 ```
 
+## Running the example
 
-# Testing:
-
-## Testing AWS Secrets:
-
-Admin access may be needed for secrets access, or some lesser access, coordinate with the administrator.
-
-1. Goto Okta 
-2. Click AWS 
-3. Expand the account you want to test 
-4. Click the "Command line or programmatic access" link
-5. Copy the export command from step 1 and run those in the console you will be testing from
-6. Also run this in the same console: `export AWS_REGION="us-east-2"`
-7. Build sigex (from root of repo run: `go build`)
-8. Go into the example app directory: `cd examples/node`
-9. Run the example app: `../../sigex -f config/.dev.env -f .env node app.js`
-10. Observe the output it should show `AWS_SECRET: "dev secret for sigex"` along with secrets from other sources.
-
+Check out the [example](examples/node) for a simple node.js program that
+demonstrates how to use sigex to retrieve secrets from AWS Secrets Manager and
+GCP Secret Manager.
