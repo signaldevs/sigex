@@ -51,29 +51,31 @@ jobs:
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
-        run: |
-          binary_name="sigex"
-          if [ "${{ matrix.goos }}" = "windows" ]; then
-            binary_name+='.exe'
-          fi
-          go build -v \
-          -ldflags "-X github.com/signaldevs/sigex/cmd.version=${{ github.ref_name }}" \
-          -o ${binary_name} .
+        run: >
+          go build -v
+          -ldflags "-X github.com/signaldevs/sigex/cmd.version=${{ github.ref_name }}"
+          -o sigex${{ matrix.goos == 'windows' && '.exe' || '' }} .
 
       - name: Run tests
         run: go test -v ./...
 
-      - name: Create ZIP file
-        run: |
-          zip_name="sigex-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip"
-          zip -j ${zip_name} sigex${{ matrix.goos == 'windows' && '.exe' || '' }}
-
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload release binaries
+        uses: actions/upload-artifact@v2
         with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ./sigex-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip
-          asset_name: sigex-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip
-          asset_content_type: application/zip
+          name: sigex-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: ./sigex${{ matrix.goos == 'windows' && '.exe' || '' }}
+
+      # - name: Create ZIP file
+      #   run: |
+      #     zip_name="sigex-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip"
+      #     zip -j ${zip_name} sigex${{ matrix.goos == 'windows' && '.exe' || '' }}
+
+      # - name: Upload Release Asset
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ needs.create-release.outputs.upload_url }}
+      #     asset_path: ./sigex-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip
+      #     asset_name: sigex-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip
+      #     asset_content_type: application/zip
