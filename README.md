@@ -1,5 +1,11 @@
 # sigex
 
+`sigex` is a process runner/executor with support for multiple `.env` file
+configuration with automatic retrieval of secrets from supported secrets
+manager platforms.
+
+You can run any process command with `sigex`.
+
 ## Installation
 
 ### MacOS
@@ -18,10 +24,6 @@ Coming soon...
 ## Usage
 
 ```bash
-sigex is a process runner/executor with support for multiple .env file
-configuration as well as automatic retrieval of secrets from
-supported secrets manager platforms.
-
 Usage:
   sigex [flags] command
 
@@ -33,10 +35,10 @@ Flags:
       --skip-secrets             skip the automatic resolution of secret values
 ```
 
-Example running a node app:
+Example running a python app:
 
 ```bash
-sigex node app.js
+sigex python test.py
 ```
 
 Running a node app with a `.env` file:
@@ -51,26 +53,33 @@ Running a node app with multiple `.env` files and specific env vars
 sigex -f config/.dev.env -f .env -e FOO=BAR node app.js
 ```
 
-## Env Files
+## Secret Token Format
+
+`sigex` resolves environment variables from common secret managers. Instead of hard coding values in your env vars, you can use the `sigex-secret-{secret_manager}://` prefix to resolve values from supported secret managers.
+
+Supported secret managers:
+
+- [Google Cloud Secrets Manager](#google-cloud-secrets-manager)
+- [AWS Secrets Manager](#aws-secrets-manager)
+
+Example:
+
+```bash
+SECRET_GCP_KEY=sigex-secret-gcp://projects/00000000000/secrets/mysecret/versions/latest
+SECRET_AWS_KEY=sigex-secret-aws://path/to/secret
+```
+
+## Environment Files (`.env` files)
 
 `sigex` supports using one or more `.env` files. The format for the variables in the files should be in `key=value` format like so:
 
 ```text
-FOO=Bar
-BIN=Baz
-URL=http://www.signaladvisors.com
+SECRET_KEY=sigex-secret-gcp://projects/00000000000/secrets/mysecret/versions/latest
+MODE=FOO
+API_URL=http://www.signaladvisors.com
 ```
 
-## Secrets
-
-Secrets can be automatically resolved using a supported secrets manager. In your environment variables, insert a token for your secret and `sigex` will request it for you.
-
-Current secrets managers supported:
-
-- Google Cloud Secrets Manager
-- AWS Secrets Manager
-
-### Google Secrets Manager
+### Google Cloud Secrets Manager
 
 Token Format: `sigex-secret-{secret platform}://{Resource Id incl Version}`
 
@@ -88,7 +97,7 @@ Token Format: `sigex-secret-aws://{Resource Id}`
 MY_AWS_SECRET=sigex-secret-aws:///dev/sigex/test
 ```
 
-### Rot13 Secrets
+### Rot13 Secrets [DEPRECATED]
 
 This is used for testing or very light obfuscation it provides zero real security.
 
@@ -99,7 +108,16 @@ Token Format: `sigex-secret-rot13://uryyb_jbeyq`
 MY_ROT13_SECRET=sigex-secret-rot13://uryyb_jbeyq
 ```
 
-## Running the example
+## Testing Secrets Resolution
+
+You can run `sigex` with the `--debug` flag to see the resolved environment variables and their values.
+
+```bash
+export SECRET_KEY=sigex-secret-gcp://projects/00000000000/secrets/mysecret/versions/latest
+sigex --debug
+```
+
+## Running the Example
 
 Check out the [example](examples/node) for a simple node.js program that
 demonstrates how to use sigex to retrieve secrets from AWS Secrets Manager and
