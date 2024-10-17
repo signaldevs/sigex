@@ -73,7 +73,13 @@ jobs:
       - name: Calculate SHA256 checksum
         run: >
           sha256sum sigex-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz > 
-          sigex-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz.sha256.txt
+          checksum-${{ matrix.goos }}-${{ matrix.goarch }}.txt
+
+      - name: Upload checksum file
+        uses: actions/upload-artifact@v4
+        with:
+          name: checksum-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: checksum-${{ matrix.goos }}-${{ matrix.goarch }}.txt
 
       - name: Upload archive
         uses: actions/upload-release-asset@v1
@@ -85,12 +91,25 @@ jobs:
           asset_name: sigex-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
           asset_content_type: application/gzip
 
-      - name: Upload checksum
+  combine-checksums:
+    needs:
+      - build-and-upload
+      - create-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all checksum files
+        uses: actions/download-artifact@v4
+
+      - name: Combine checksum files
+        run: |
+          cat checksum-*/*.txt > checksums.txt
+
+      - name: Upload combined checksums
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ./sigex-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz.sha256.txt
-          asset_name: sigex-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz.sha256.txt
+          asset_path: ./checksums.txt
+          asset_name: checksums.txt
           asset_content_type: text/plain
