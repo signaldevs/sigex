@@ -114,7 +114,7 @@ You can run `sigex` with the `--debug` flag to see the resolved environment vari
 
 ```bash
 export SECRET_KEY=sigex-secret-gcp://projects/00000000000/secrets/mysecret/versions/latest
-sigex --debug
+sigex --debug | grep SECRET_KEY
 ```
 
 ## Running the Example
