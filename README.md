@@ -1,5 +1,7 @@
 # sigex
 
+[![GitHub License](https://img.shields.io/github/license/signaldevs/sigex?style=flat)](https://github.com/signaldevs/sigex/blob/master/LICENSE) ![GitHub Release](https://img.shields.io/github/v/release/signaldevs/sigex)
+
 `sigex` is a process runner/executor with support for multiple `.env` file
 configuration with automatic retrieval of secrets from supported secrets
 manager platforms.
